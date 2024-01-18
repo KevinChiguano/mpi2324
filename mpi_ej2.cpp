@@ -28,7 +28,6 @@ int main(int argc, char** argv) {
         }
 
 
-
         for(int i = 1; i < nprocs; i++){
             std::printf("RANK_0 enviando datos a RANK_%d\n ",i);
             MPI_Send(data //datos

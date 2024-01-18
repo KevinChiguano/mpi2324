@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
 
         int suma_ranks[4];
-        suma_ranks[0] = sumar(data, 25);;
+        suma_ranks[0] = sumar(data, 25);
 
         for(int rank_id = 1; rank_id < nprocs; rank_id++){
             MPI_Recv(&suma_ranks[rank_id], 1, MPI_INT, rank_id, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
