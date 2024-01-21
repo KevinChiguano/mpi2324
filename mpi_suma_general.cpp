@@ -5,6 +5,19 @@
 #include <fstream>
 #include <vector>
 #include <cstdlib>
+#include <iostream>
+
+std::vector<int> read_file() {
+    //colocar la ruta del archivo con los datos
+    std::fstream fs("./datos.txt", std::ios::in );
+    std::string line;
+    std::vector<int> ret;
+    while( std::getline(fs, line) ){
+        ret.push_back( std::stoi(line) );
+    }
+    fs.close();
+    return ret;
+}
 
 int sumar(int* tmp, int n){
     int suma = 0;
@@ -31,11 +44,8 @@ int main(int argc, char** argv){
 
     if(rank == 0){
 
-
-        std::cout << "Ingrese un número: ";
-        std::cin >> tam;
-
-        data.resize(tam);
+        data = read_file();
+        tam = data.size();
 
         std::printf("Total ranks: %d\n", nprocs);
         int k = 1;
@@ -71,7 +81,7 @@ int main(int argc, char** argv){
     }else{
 
         MPI_Recv(&tam, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        data.resize(tam);
+        //data.resize(tam);
         MPI_Recv(data.data(), tam, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         int suma_local = sumar(data.data(), tam);
