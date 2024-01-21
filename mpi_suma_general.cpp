@@ -48,10 +48,6 @@ int main(int argc, char** argv){
         tam = data.size();
 
         std::printf("Total ranks: %d\n", nprocs);
-        int k = 1;
-        for (int i = 0; i < tam; i++){
-            data[i] = rand() % 101;
-        }
 
         int residuo = tam % nprocs;
         size = tam/nprocs;
@@ -81,13 +77,13 @@ int main(int argc, char** argv){
     }else{
 
         MPI_Recv(&tam, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        //data.resize(tam);
+        data.resize(tam);
         MPI_Recv(data.data(), tam, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         int suma_local = sumar(data.data(), tam);
         std::printf("Proceso %d: Suma local = %d\n", rank, suma_local);
 
-        MPI_Send(&suma_local, 1, MPI_INT, 0,0,MPI_COMM_WORLD);
+        MPI_Send(&suma_local, 1, MPI_FLOAT, 0,0,MPI_COMM_WORLD);
 
     }
 
