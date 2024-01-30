@@ -34,13 +34,16 @@ int main(int argc, char** argv) {
         padding = real_size - MAX_ITEMS;
     }
 
-    std::vector<int> data;
-    std::vector<int> data_local(block_size);
+
+
 
     if(rank == 0){
+
+        int suma_total = 0;
+
+        std::vector<int> data;
         //inicializar
         data.resize(real_size);
-        std::vector<int> sumas_rank(nprocs);
 
         std::printf("Dimension: %d, rows_alloc: %d, rows_per_rank: %d, padding: %d\n",
                     MAX_ITEMS, real_size, block_size, padding);
@@ -49,43 +52,56 @@ int main(int argc, char** argv) {
             data[i] = i;
         }
 
-        MPI_Bcast(&block_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        MPI_Bcast(&padding, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&suma_total, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
         //Enviar los datos
         MPI_Scatter(data.data(), block_size, MPI_INT,
                     MPI_IN_PLACE, 0, MPI_INT,
                     0, MPI_COMM_WORLD);
 
+        std::vector<int> sumaRank(nprocs);
+
+        sumaRank[0] = sumar(data.data(), block_size);
+
+        //Recibir los datos
         MPI_Gather(MPI_IN_PLACE, 0, MPI_INT,
-                   sumas_rank.data(), block_size, MPI_INT,
+                   sumaRank.data(), 1, MPI_INT,
                    0, MPI_COMM_WORLD);
+
+        suma_total = sumar(sumaRank.data(), nprocs);
+
+        std::printf("SUMA TOTAL: %d\n", suma_total);
+
 
     }else{
 
-        MPI_Bcast(&block_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        MPI_Bcast(&padding, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        int sumaTotal;
+        MPI_Bcast(&sumaTotal, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        std::vector<int> data_local(block_size);
 
-        // Calculo la suma parcial
-        if (rank == nprocs - 1) {
-            block_size = block_size - padding;
-        }
-
+        //Recibir los datos
         MPI_Scatter(nullptr, 0, MPI_INT,
                     data_local.data(), block_size, MPI_INT,
                     0, MPI_COMM_WORLD);
 
-        int suma_parcial = sumar(data_local.data(), block_size);
+        //Calculo la suma parcial
+        if(rank == nprocs-1){
+            block_size = block_size - padding;
+            data_local.resize(block_size);
+        }
 
+        int suma_parcial = sumar(data_local.data(), data_local.size());
         std::printf("RANK_%d: suma parcial = %d\n", rank, suma_parcial);
 
-        // enviar la suma parcial al Rank_0
-        int suma_total = 0;
+        //Recibir los datos
+        MPI_Gather(&suma_parcial, 1, MPI_INT,
+                   nullptr, 0, MPI_INT,
+                   0, MPI_COMM_WORLD);
 
-        MPI_Reduce(&suma_parcial, &suma_total, 1, MPI_INT,
-                   MPI_SUM, 0, MPI_COMM_WORLD);
 
     }
+
+
 
 
     MPI_Finalize();

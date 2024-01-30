@@ -83,7 +83,7 @@ int main(int argc, char** argv){
         int suma_local = sumar(data.data(), tam);
         std::printf("Proceso %d: Suma local = %d\n", rank, suma_local);
 
-        MPI_Send(&suma_local, 1, MPI_FLOAT, 0,0,MPI_COMM_WORLD);
+        MPI_Send(&suma_local, 1, MPI_INT, 0,0,MPI_COMM_WORLD);
 
     }
 
